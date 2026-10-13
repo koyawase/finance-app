@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 @Entity
 public class Customer {
@@ -19,7 +18,6 @@ public class Customer {
 
     private String email;
 
-    @Column(name = "phone_number")
     private String phoneNumber;
 
     public Long getId() {

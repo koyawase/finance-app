@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.example.backend.account.dto.AccountResponse;
 import com.example.backend.account.service.AccountService;
+import com.example.backend.transaction.dto.TransactionResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,5 +24,10 @@ public class AccountController {
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<List<AccountResponse>> getAccountsByCustomerId(@PathVariable Long customerId) {
         return ResponseEntity.ok(accountService.getAccountsByCustomerId(customerId));
+    }
+
+    @GetMapping("/{accountId}/transactions")
+    public ResponseEntity<List<TransactionResponse>> getTransactionsByAccountId(@PathVariable Long accountId) {
+        return ResponseEntity.ok(accountService.getTransactionsByAccountId(accountId));
     }
 }

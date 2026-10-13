@@ -22,14 +22,17 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "account_number", nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     private String accountNumber;
+
+    @Column(nullable = false)
+    private String accountName;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "account_type", nullable = false)
+    @Column(nullable = false)
     private AccountType accountType;
 
     @ManyToOne
@@ -40,7 +43,7 @@ public class Account {
     @Column(nullable = false)
     private AccountStatus status = AccountStatus.ACTIVE;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
     public Long getId() {
@@ -49,6 +52,10 @@ public class Account {
 
     public String getAccountNumber() {
         return accountNumber;
+    }
+
+    public String getAccountName() {
+        return accountName;
     }
 
     public BigDecimal getBalance() {

@@ -7,6 +7,7 @@ import com.example.backend.account.entity.AccountType;
 
 public record AccountResponse(
         Long id,
+        String accountName,
         String accountNumber,
         AccountType accountType,
         BigDecimal balance,
