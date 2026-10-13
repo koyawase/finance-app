@@ -2,6 +2,7 @@ package com.example.backend.account.entity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.math.RoundingMode;
 
 import com.example.backend.customer.entity.Customer;
 
@@ -76,5 +77,13 @@ public class Account {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public void debit(BigDecimal amount) {
+        balance = balance.subtract(amount).setScale(2, RoundingMode.UNNECESSARY);
+    }
+
+    public void credit(BigDecimal amount) {
+        balance = balance.add(amount).setScale(2, RoundingMode.UNNECESSARY);
     }
 }

@@ -52,6 +52,19 @@ public class Transaction {
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    protected Transaction() {
+    }
+
+    public Transaction(Account account, Transfer transfer, TransactionType type,
+                       BigDecimal amount, BigDecimal balanceAfter, String reference) {
+        this.account = account;
+        this.transfer = transfer;
+        this.type = type;
+        this.amount = amount;
+        this.balanceAfter = balanceAfter;
+        this.reference = reference;
+    }
+
     public Long getId() {
         return id;
     }

@@ -42,6 +42,16 @@ public class Transfer {
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    protected Transfer() {
+    }
+
+    public Transfer(Account fromAccount, Account toAccount, BigDecimal amount, String reference) {
+        this.fromAccount = fromAccount;
+        this.toAccount = toAccount;
+        this.amount = amount;
+        this.reference = reference;
+    }
+
     public Long getId() {
         return id;
     }

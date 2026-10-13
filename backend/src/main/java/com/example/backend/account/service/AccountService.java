@@ -76,7 +76,10 @@ public class AccountService {
         return new TransferResponse(
                 transfer.getId(),
                 toAccountSummary(transfer.getFromAccount()),
-                toAccountSummary(transfer.getToAccount()));
+                toAccountSummary(transfer.getToAccount()),
+                transfer.getAmount(),
+                transfer.getReference(),
+                transfer.getCreatedAt());
     }
 
     private AccountSummary toAccountSummary(Account account) {
