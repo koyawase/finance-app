@@ -1,6 +1,6 @@
 package com.example.backend.customer.controller;
 
-import com.example.backend.customer.entity.Customer;
+import com.example.backend.customer.dto.CustomerResponse;
 import com.example.backend.customer.service.CustomerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +19,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
+    public ResponseEntity<CustomerResponse> getCustomerById(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 }

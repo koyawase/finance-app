@@ -1,5 +1,6 @@
 package com.example.backend.customer.service;
 
+import com.example.backend.customer.dto.CustomerResponse;
 import com.example.backend.customer.entity.Customer;
 import com.example.backend.customer.repository.CustomerRepository;
 import org.springframework.http.HttpStatus;
@@ -15,10 +16,19 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
-    public Customer getCustomerById(Long id) {
+    public CustomerResponse getCustomerById(Long id) {
         return customerRepository.findById(id)
+                .map(this::toCustomerResponse)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Customer not found"));
+    }
+
+    private CustomerResponse toCustomerResponse(Customer customer) {
+        return new CustomerResponse(
+                customer.getId(),
+                customer.getName(),
+                customer.getEmail(),
+                customer.getPhoneNumber());
     }
 
 }
