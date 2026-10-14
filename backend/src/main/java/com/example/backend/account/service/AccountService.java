@@ -6,7 +6,6 @@ import com.example.backend.account.dto.AccountResponse;
 import com.example.backend.account.dto.AccountSummary;
 import com.example.backend.account.entity.Account;
 import com.example.backend.account.repository.AccountRepository;
-import com.example.backend.customer.service.CustomerService;
 import com.example.backend.transaction.dto.TransactionResponse;
 import com.example.backend.transaction.entity.Transaction;
 import com.example.backend.transaction.repository.TransactionRepository;
@@ -21,26 +20,23 @@ import org.springframework.web.server.ResponseStatusException;
 public class AccountService {
 
     private final AccountRepository accountRepository;
-    private final CustomerService customerService;
     private final TransactionRepository transactionRepository;
 
-    public AccountService(AccountRepository accountRepository, CustomerService customerService,
+    public AccountService(AccountRepository accountRepository,
                           TransactionRepository transactionRepository) {
         this.accountRepository = accountRepository;
-        this.customerService = customerService;
         this.transactionRepository = transactionRepository;
     }
 
-    public List<AccountResponse> getAccountsByCustomerId(Long customerId) {
-        customerService.getCustomerById(customerId);
-        return accountRepository.findByCustomerId(customerId).stream()
+    public List<AccountResponse> getAccountsForSubject(String subject) {
+        return accountRepository.findByCustomer_Auth0Subject(subject).stream()
                 .map(this::toAccountResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<TransactionResponse> getTransactionsByAccountId(Long accountId) {
-        if (!accountRepository.existsById(accountId)) {
+    public List<TransactionResponse> getTransactionsByAccountId(Long accountId, String subject) {
+        if (accountRepository.findByIdAndCustomer_Auth0Subject(accountId, subject).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found");
         }
         return transactionRepository.findByAccountIdOrderByCreatedAtDescIdDesc(accountId).stream()

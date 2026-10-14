@@ -12,5 +12,4 @@ public record AccountResponse(
         AccountType accountType,
         BigDecimal balance,
         AccountStatus status
-) {
-}
+) {}

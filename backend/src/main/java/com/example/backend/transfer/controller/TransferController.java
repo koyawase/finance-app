@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @RestController
 @RequestMapping("/transfers")
@@ -22,7 +24,9 @@ public class TransferController {
     }
 
     @PostMapping()
-    public ResponseEntity<TransferResponse> transfer(@Valid @RequestBody TransferRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(transferService.transfer(request));
+    public ResponseEntity<TransferResponse> transfer(@Valid @RequestBody TransferRequest request,
+                                                     @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(transferService.transfer(request, jwt.getSubject()));
     }
 }

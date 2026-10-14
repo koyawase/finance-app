@@ -1,8 +1,8 @@
-INSERT INTO customer (name, email, phone_number)
-VALUES ('Lionel Messi', 'leothegoat@test.com', '0212121211');
+INSERT INTO customer (name, auth0_subject, email, phone_number)
+VALUES ('Lionel Messi', 'auth0|6acf50141830a1fdcf3cd31c', 'leothegoat@test.com', '0212121211');
 
-INSERT INTO customer (name, email, phone_number)
-VALUES ('Cristiano Ronaldo', 'cristiano@test.com', '0222121212');
+INSERT INTO customer (name, auth0_subject, email, phone_number)
+VALUES ('Cristiano Ronaldo', 'auth0|6acf4fafd93ae04b164799ca', 'cristiano@test.com', '0222121212');
 
 INSERT INTO account (account_number, account_name, balance, account_type, customer_id, status, created_at)
 SELECT '0000000001', 'Everyday spending', 15000.00, 'CHECKING', id, 'ACTIVE', CURRENT_TIMESTAMP

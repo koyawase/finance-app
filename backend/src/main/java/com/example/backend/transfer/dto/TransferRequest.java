@@ -12,5 +12,4 @@ public record TransferRequest(
         @NotBlank String toAccountNumber,
         @NotNull @DecimalMin("0.01") BigDecimal amount,
         @Size(max = 20) String reference
-) {
-}
+) {}

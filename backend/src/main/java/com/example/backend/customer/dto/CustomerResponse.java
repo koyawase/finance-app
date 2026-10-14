@@ -5,5 +5,4 @@ public record CustomerResponse(
         String name,
         String email,
         String phoneNumber
-) {
-}
+) {}

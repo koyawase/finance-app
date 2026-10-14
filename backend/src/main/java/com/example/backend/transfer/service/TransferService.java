@@ -33,7 +33,7 @@ public class TransferService {
     }
 
     @Transactional
-    public TransferResponse transfer(TransferRequest request) {
+    public TransferResponse transfer(TransferRequest request, String auth0Subject) {
         String fromAccountNumber = request.fromAccountNumber();
         String toAccountNumber = request.toAccountNumber();
         if (fromAccountNumber.equals(toAccountNumber)) {
@@ -47,6 +47,10 @@ public class TransferService {
 
         Account fromAccount = findAccount(fromAccountNumber);
         Account toAccount = findAccount(toAccountNumber);
+
+        if (!auth0Subject.equals(fromAccount.getCustomer().getAuth0Subject())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Source account not found");
+        }
 
         if (fromAccount.getStatus() != AccountStatus.ACTIVE || toAccount.getStatus() != AccountStatus.ACTIVE) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Both accounts must be active");

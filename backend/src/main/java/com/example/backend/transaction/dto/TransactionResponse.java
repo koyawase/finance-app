@@ -14,5 +14,4 @@ public record TransactionResponse(
         String reference,
         Instant createdAt,
         TransferResponse transfer
-) {
-}
+) {}

@@ -13,8 +13,10 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String name;
+
+    @Column(unique = true)
+    private String auth0Subject;
 
     private String email;
 
@@ -34,5 +36,25 @@ public class Customer {
 
     public String getPhoneNumber() {
         return phoneNumber;
+    }
+
+    public String getAuth0Subject() {
+        return auth0Subject;
+    }
+
+    public Customer(String auth0Subject, String email) {
+        this.auth0Subject = auth0Subject;
+        this.email = email;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    protected Customer() {
     }
 }

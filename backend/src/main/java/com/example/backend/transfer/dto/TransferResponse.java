@@ -12,5 +12,4 @@ public record TransferResponse(
         BigDecimal amount,
         String reference,
         Instant createdAt
-) {
-}
+) {}
