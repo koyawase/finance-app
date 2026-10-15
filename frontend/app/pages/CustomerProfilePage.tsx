@@ -1,7 +1,7 @@
 "use client";
 
 import CustomerProfileForm from "@/app/components/CustomerProfileForm";
-import Button from "@/app/components/Button";
+import BankingDashboard from "@/app/components/BankingDashboard";
 import { useCustomerProfile } from "@/app/hooks/useCustomerProfile";
 
 export default function CustomerProfilePage() {
@@ -20,6 +20,10 @@ export default function CustomerProfilePage() {
     ) : null;
   }
 
+  if (customerProfile.customer?.name?.trim()) {
+    return <BankingDashboard customer={customerProfile.customer} onSignOut={customerProfile.signOut} />;
+  }
+
   return (
     <main className="customer-profile-screen">
       {customerProfile.customer && !customerProfile.customer.name?.trim() && (
@@ -30,17 +34,6 @@ export default function CustomerProfilePage() {
           onSubmit={customerProfile.saveDetails}
           onSignOut={customerProfile.signOut}
         />
-      )}
-      {customerProfile.customer?.name?.trim() && (
-        <section className="profile-card">
-          <p className="eyebrow">Your profile</p>
-          <h1>Welcome, {customerProfile.customer.name}</h1>
-          <p>Customer ID: {customerProfile.customer.id}</p>
-          <p>Name: {customerProfile.customer.name}</p>
-          <p>Email: {customerProfile.customer.email}</p>
-          {customerProfile.customer.phoneNumber && <p>Phone: {customerProfile.customer.phoneNumber}</p>}
-          <Button variant="secondary" onClick={customerProfile.signOut}>Log out</Button>
-        </section>
       )}
       {customerProfile.error && !customerProfile.customer && (
         <section className="profile-card profile-message" role="alert">
