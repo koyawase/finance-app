@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -17,7 +19,7 @@ public class GlobalExceptionHandler {
         int status = exception.getStatusCode().value();
         HttpStatus httpStatus = HttpStatus.valueOf(status);
         ApiErrorResponse body = new ApiErrorResponse(
-                java.time.Instant.now(),
+                Instant.now(),
                 status,
                 httpStatus.getReasonPhrase(),
                 exception.getReason(),
