@@ -2,8 +2,8 @@
 
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useState } from "react";
-import { getAccountTransactions, getAccounts } from "@/app/services/bankingService";
-import type { BankAccount, BankTransaction } from "@/app/types/account";
+import { createAccount as createAccountRequest, getAccountTransactions, getAccounts } from "@/app/services/bankingService";
+import type { BankAccount, BankTransaction, CreateAccountInput } from "@/app/types/account";
 
 export function useBankAccounts() {
   const { getAccessTokenSilently } = useAuth0();
@@ -25,6 +25,13 @@ export function useBankAccounts() {
   function closeAccount() {
     setSelectedAccount(null);
     setTransactionsLoading(false);
+  }
+
+  async function createAccount(input: CreateAccountInput) {
+    const token = await getAccessTokenSilently();
+    const account = await createAccountRequest(token, input);
+    setError(null);
+    setAccounts((currentAccounts) => [...currentAccounts, account]);
   }
 
   useEffect(() => {
@@ -75,6 +82,7 @@ export function useBankAccounts() {
     selectedAccount,
     openAccount,
     closeAccount,
+    createAccount,
     transactions,
     loading,
     transactionsLoading,

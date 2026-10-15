@@ -34,6 +34,7 @@ export default function BankingDashboard({ customer, onSignOut }: { customer: Cu
             loading={bank.loading}
             error={bank.error}
             onSelect={bank.openAccount}
+            onCreate={bank.createAccount}
           />
         )}
       </div>

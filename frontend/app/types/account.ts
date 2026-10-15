@@ -7,6 +7,12 @@ export type BankAccount = {
   status: "ACTIVE" | "INACTIVE";
 };
 
+export type CreateAccountInput = {
+  accountName: string;
+  accountType: BankAccount["accountType"];
+  balance: number;
+};
+
 export type AccountSummary = Pick<BankAccount, "id" | "accountName" | "accountNumber">;
 
 export type Transfer = {
