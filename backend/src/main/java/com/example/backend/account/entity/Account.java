@@ -47,6 +47,9 @@ public class Account {
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    protected Account() {
+    }
+
     public Long getId() {
         return id;
     }
@@ -77,6 +80,16 @@ public class Account {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Account(String accountNumber, String accountName, BigDecimal balance,
+                   AccountType accountType, Customer customer) {
+        this.accountNumber = accountNumber;
+        this.accountName = accountName;
+        this.balance = balance;
+        this.accountType = accountType;
+        this.customer = customer;
+        this.status = AccountStatus.ACTIVE;
     }
 
     public void debit(BigDecimal amount) {

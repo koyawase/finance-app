@@ -1,11 +1,15 @@
 package com.example.backend.account.service;
 
 import java.util.List;
+import java.security.SecureRandom;
 
 import com.example.backend.account.dto.AccountResponse;
 import com.example.backend.account.dto.AccountSummary;
+import com.example.backend.account.dto.AccountCreateRequest;
 import com.example.backend.account.entity.Account;
 import com.example.backend.account.repository.AccountRepository;
+import com.example.backend.customer.entity.Customer;
+import com.example.backend.customer.repository.CustomerRepository;
 import com.example.backend.transaction.dto.TransactionResponse;
 import com.example.backend.transaction.entity.Transaction;
 import com.example.backend.transaction.repository.TransactionRepository;
@@ -21,11 +25,15 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+    private final CustomerRepository customerRepository;
+    private final SecureRandom secureRandom = new SecureRandom();
 
     public AccountService(AccountRepository accountRepository,
-                          TransactionRepository transactionRepository) {
+                          TransactionRepository transactionRepository,
+                          CustomerRepository customerRepository) {
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
+        this.customerRepository = customerRepository;
     }
 
     public List<AccountResponse> getAccountsForSubject(String subject) {
@@ -34,7 +42,6 @@ public class AccountService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     public List<TransactionResponse> getTransactionsByAccountId(Long accountId, String subject) {
         if (accountRepository.findByIdAndCustomer_Auth0Subject(accountId, subject).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found");
@@ -42,6 +49,25 @@ public class AccountService {
         return transactionRepository.findByAccountIdOrderByCreatedAtDescIdDesc(accountId).stream()
                 .map(this::toTransactionResponse)
                 .toList();
+    }
+
+    @Transactional
+    public AccountResponse createAccountForSubject(String subject, AccountCreateRequest request) {
+        Customer customer = customerRepository.findByAuth0Subject(subject)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "No customer is linked to this Auth0 user yet"));
+        String accountNumber;
+        do {
+            accountNumber = String.format("%010d", secureRandom.nextInt(1_000_000_000));
+        } while (accountRepository.findByAccountNumber(accountNumber).isPresent());
+
+        Account account = accountRepository.save(new Account(
+                accountNumber,
+                request.accountName().trim(),
+                request.balance(),
+                request.accountType(),
+                customer));
+        return toAccountResponse(account);
     }
 
     private AccountResponse toAccountResponse(Account account) {

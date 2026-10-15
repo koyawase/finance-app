@@ -22,6 +22,9 @@ public class Customer {
 
     private String phoneNumber;
 
+    protected Customer() {
+    }
+
     public Long getId() {
         return id;
     }
@@ -55,6 +58,4 @@ public class Customer {
         this.phoneNumber = phoneNumber;
     }
 
-    protected Customer() {
-    }
 }
