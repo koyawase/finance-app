@@ -1,6 +1,11 @@
+"use client";
+
+import { useState } from "react";
+import Button from "@/app/components/Button";
+import TransferModal from "@/app/components/account/TransferModal";
 import TransactionRow from "@/app/components/account/TransactionRow";
 import { accountTypeLabel, formatMoney } from "@/app/components/account/formatters";
-import type { BankAccount, BankTransaction } from "@/app/types/account";
+import type { BankAccount, BankTransaction, TransferInput } from "@/app/types/account";
 
 type TransactionHistoryProps = {
   account: BankAccount;
@@ -8,9 +13,12 @@ type TransactionHistoryProps = {
   loading: boolean;
   error: string | null;
   onBack: () => void;
+  onTransfer: (transfer: TransferInput) => Promise<void>;
 };
 
-export default function TransactionHistory({ account, transactions, loading, error, onBack }: TransactionHistoryProps) {
+export default function TransactionHistory({ account, transactions, loading, error, onBack, onTransfer }: TransactionHistoryProps) {
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
+
   return (
     <section className="transaction-view">
       <button className="back-button" onClick={onBack}>
@@ -22,7 +30,10 @@ export default function TransactionHistory({ account, transactions, loading, err
           <h2>{account.accountName}</h2>
           <p className="account-number">Account number {account.accountNumber}</p>
         </div>
-        <p className="history-balance">{formatMoney(account.balance)}</p>
+        <div className="history-actions">
+          <p className="history-balance">{formatMoney(account.balance)}</p>
+          <Button type="button" onClick={() => setTransferModalOpen(true)}>Transfer money</Button>
+        </div>
       </div>
 
       <h3 className="section-title">Transaction history</h3>
@@ -41,6 +52,9 @@ export default function TransactionHistory({ account, transactions, loading, err
             <TransactionRow key={transaction.id} transaction={transaction} />
           ))}
         </div>
+      )}
+      {transferModalOpen && (
+        <TransferModal account={account} onClose={() => setTransferModalOpen(false)} onSubmit={onTransfer} />
       )}
     </section>
   );

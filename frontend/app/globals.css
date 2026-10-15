@@ -147,6 +147,7 @@ body {
 
 .primary-button {
   margin-top: 12px;
+  padding: 0 20px;
   color: #fff;
   background: #29b58b;
 }
@@ -347,6 +348,12 @@ body {
   margin: 8px 0 22px;
   color: #706a7e;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.optional-label {
+  color: #817b8d;
+  font-weight: 400;
 }
 
 .modal-close {
@@ -594,6 +601,18 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.history-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.history-actions .primary-button {
+  margin-top: 0;
+  padding: 0 20px;
+  white-space: nowrap;
+}
+
 .section-title {
   margin: 0 0 10px;
   font-size: 16px;
@@ -641,6 +660,12 @@ body {
   margin-top: 5px;
   color: #817b8d;
   font-size: 12px;
+}
+
+.transaction-other-account-number {
+  color: #817b8d;
+  font-size: 12px;
+  font-weight: 400;
 }
 
 .transaction-amounts {
@@ -720,6 +745,10 @@ body {
     align-items: flex-start;
     flex-direction: column;
     margin: 27px 0 30px;
+  }
+
+  .history-actions {
+    flex-wrap: wrap;
   }
 
   .transaction-row {

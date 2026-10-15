@@ -13,6 +13,14 @@ export type CreateAccountInput = {
   balance: number;
 };
 
+export type TransferInput = {
+  toAccountNumber: string;
+  amount: number;
+  reference?: string;
+};
+
+export type TransferRequest = TransferInput & { fromAccountNumber: string };
+
 export type AccountSummary = Pick<BankAccount, "id" | "accountName" | "accountNumber">;
 
 export type Transfer = {
@@ -20,7 +28,7 @@ export type Transfer = {
   fromAccount: AccountSummary;
   toAccount: AccountSummary;
   amount: number;
-  reference: string;
+  reference: string | null;
   createdAt: string;
 };
 

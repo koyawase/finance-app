@@ -1,4 +1,4 @@
-import type { BankAccount, BankTransaction, CreateAccountInput } from "@/app/types/account";
+import type { BankAccount, BankTransaction, CreateAccountInput, Transfer, TransferRequest } from "@/app/types/account";
 
 const API_URL = "http://localhost:8080";
 
@@ -12,10 +12,27 @@ async function bankingRequest<T>(token: string, path: string, init: RequestInit 
   });
 
   if (!response.ok) {
-    throw new Error(`Backend returned ${response.status}: ${await response.text()}`);
+    throw new Error(await responseError(response));
   }
 
   return response.json() as Promise<T>;
+}
+
+async function responseError(response: Response) {
+  const body = await response.text();
+  let message = body;
+
+  try {
+    const payload: unknown = JSON.parse(body);
+    if (payload && typeof payload === "object") {
+      if ("message" in payload && typeof payload.message === "string") message = payload.message;
+      else if ("detail" in payload && typeof payload.detail === "string") message = payload.detail;
+    }
+  } catch {
+    // The backend may return a plain-text error body.
+  }
+
+  return message ? `Request failed (${response.status}): ${message}` : `Request failed (${response.status}).`;
 }
 
 export function getAccounts(token: string) {
@@ -31,5 +48,13 @@ export function createAccount(token: string, account: CreateAccountInput) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(account),
+  });
+}
+
+export function createTransfer(token: string, transfer: TransferRequest) {
+  return bankingRequest<Transfer>(token, "/transfers", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(transfer),
   });
 }

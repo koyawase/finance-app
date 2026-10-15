@@ -27,6 +27,7 @@ export default function BankingDashboard({ customer, onSignOut }: { customer: Cu
             loading={bank.transactionsLoading}
             error={bank.transactionsError}
             onBack={bank.closeAccount}
+            onTransfer={bank.transfer}
           />
         ) : (
           <AccountGrid

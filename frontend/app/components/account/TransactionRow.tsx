@@ -6,9 +6,7 @@ export default function TransactionRow({ transaction }: { transaction: BankTrans
   const otherAccount = transaction.transfer && (isCredit
     ? transaction.transfer.fromAccount
     : transaction.transfer.toAccount);
-  const description = otherAccount
-    ? `${isCredit ? "From" : "To"} ${otherAccount.accountName}`
-    : transaction.reference || (isCredit ? "Money in" : "Money out");
+  const description = transaction.reference || (isCredit ? "Money in" : "Money out");
 
   return (
     <article className="transaction-row">
@@ -16,7 +14,14 @@ export default function TransactionRow({ transaction }: { transaction: BankTrans
         {isCredit ? "↓" : "↑"}
       </span>
       <div className="transaction-description">
-        <p>{description}</p>
+        <p>
+          {otherAccount ? (
+            <>
+              {isCredit ? "From" : "To"} {otherAccount.accountName}{" "}
+              <span className="transaction-other-account-number">({otherAccount.accountNumber})</span>
+            </>
+          ) : description}
+        </p>
         <time dateTime={transaction.createdAt}>{formatDateTime(transaction.createdAt)}</time>
       </div>
       <div className="transaction-amounts">
