@@ -32,7 +32,7 @@ async function responseError(response: Response) {
     // The backend may return a plain-text error body.
   }
 
-  return message ? `Request failed (${response.status}): ${message}` : `Request failed (${response.status}).`;
+  return message ? `${message}` : `Request failed (${response.status}).`;
 }
 
 export function getAccounts(token: string) {
