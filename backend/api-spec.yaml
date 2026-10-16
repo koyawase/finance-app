@@ -1,0 +1,549 @@
+openapi: 3.0.3
+info:
+  title: Finance Demo API
+  version: 1.0.0
+  description: |
+    API for the authenticated customer, their accounts, account transactions,
+    and transfers. Every operation requires an Auth0 access token with this API's
+    audience. The current application does not enforce endpoint-specific scopes.
+servers:
+  - url: http://localhost:8080
+    description: Default local Spring Boot server
+security:
+  - bearerAuth: []
+tags:
+  - name: Customer
+  - name: Accounts
+  - name: Transfers
+paths:
+  /customer:
+    get:
+      tags: [Customer]
+      operationId: getCustomer
+      summary: Get the authenticated customer
+      description: Looks up the customer linked to the JWT subject.
+      responses:
+        '200':
+          description: Customer details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+              example:
+                id: 1
+                name: Lionel Messi
+                email: leothegoat@test.com
+                phoneNumber: '0212121211'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/CustomerNotFound'
+    post:
+      tags: [Customer]
+      operationId: createCustomer
+      summary: Create or retrieve the authenticated customer
+      description: |
+        Creates a customer linked to the JWT subject if one does not exist.
+        If one already exists, returns it without changing its email. The email
+        is trimmed and lowercased when a new customer is created.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreateRequest'
+            example:
+              email: new.user@example.com
+      responses:
+        '200':
+          description: The new or existing customer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+              example:
+                id: 3
+                name: null
+                email: new.user@example.com
+                phoneNumber: null
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [Customer]
+      operationId: updateCustomer
+      summary: Update the authenticated customer's details
+      description: Trims the supplied name and phone number before saving them.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerDetailsRequest'
+            example:
+              name: Alex Example
+              phoneNumber: '0212345678'
+      responses:
+        '200':
+          description: Updated customer details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+              example:
+                id: 3
+                name: Alex Example
+                email: new.user@example.com
+                phoneNumber: '0212345678'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/CustomerNotFound'
+  /accounts:
+    get:
+      tags: [Accounts]
+      operationId: listAccounts
+      summary: List the authenticated customer's accounts
+      description: Returns an empty array if the JWT subject has no accounts.
+      responses:
+        '200':
+          description: Accounts owned by the authenticated customer.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountResponse'
+              example:
+                - id: 1
+                  accountName: Everyday spending
+                  accountNumber: '0000000001'
+                  accountType: CHECKING
+                  balance: 15000.00
+                  status: ACTIVE
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Accounts]
+      operationId: createAccount
+      summary: Create an account for the authenticated customer
+      description: |
+        Requires an existing customer linked to the JWT subject. The server
+        generates the account ID and ten-digit account number, and creates the
+        account with ACTIVE status. The supplied opening balance is stored as
+        the balance; account creation does not create a transaction record.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreateRequest'
+            example:
+              accountName: Travel fund
+              accountType: SAVINGS
+              balance: 250.00
+      responses:
+        '201':
+          description: Account created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+              example:
+                id: 5
+                accountName: Travel fund
+                accountNumber: '0123456789'
+                accountType: SAVINGS
+                balance: 250.00
+                status: ACTIVE
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/CustomerNotFoundOnAccountCreate'
+  /accounts/{accountId}/transactions:
+    get:
+      tags: [Accounts]
+      operationId: listAccountTransactions
+      summary: List transactions for an owned account
+      description: |
+        Returns 404 when the account does not exist or does not belong to the
+        authenticated customer. Transactions are ordered by createdAt descending,
+        then ID descending. Returns an empty array when the account has no transactions.
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Database ID of the account.
+      responses:
+        '200':
+          description: Transactions for the account.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionResponse'
+              example:
+                - id: 1
+                  type: CREDIT
+                  amount: 16000.00
+                  balanceAfter: 16000.00
+                  reference: Opening balance
+                  createdAt: '2026-10-12T09:00:00Z'
+                  transfer: null
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/AccountNotFound'
+  /transfers:
+    post:
+      tags: [Transfers]
+      operationId: createTransfer
+      summary: Transfer money between accounts
+      description: |
+        The authenticated customer must own the source account. The destination
+        may belong to another customer. Both accounts must be ACTIVE, must differ,
+        and the source account must have sufficient funds. The transfer and its
+        debit and credit transaction records are saved in one database transaction.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+            example:
+              fromAccountNumber: '0000000001'
+              toAccountNumber: '0000000003'
+              amount: 750.00
+              reference: Shared expenses
+      responses:
+        '201':
+          description: Transfer created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+              example:
+                id: 4
+                fromAccount:
+                  id: 1
+                  accountName: Everyday spending
+                  accountNumber: '0000000001'
+                toAccount:
+                  id: 3
+                  accountName: Daily expenses
+                  accountNumber: '0000000003'
+                amount: 750.00
+                reference: Shared expenses
+                createdAt: '2026-10-16T10:00:00Z'
+        '400':
+          description: |
+            Invalid request body, identical source and destination accounts,
+            or an amount with more than two significant decimal places.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/ApiErrorResponse'
+                  - $ref: '#/components/schemas/FrameworkErrorResponse'
+              examples:
+                sameAccount:
+                  summary: Service validation error
+                  value:
+                    timestamp: '2026-10-16T10:00:00Z'
+                    status: 400
+                    error: Bad Request
+                    message: from and to accounts must differ
+                    path: /transfers
+                invalidBody:
+                  summary: Request validation error
+                  value:
+                    timestamp: '2026-10-16T10:00:00Z'
+                    status: 400
+                    error: Bad Request
+                    path: /transfers
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: An account was not found, or the source account is not owned by the authenticated customer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                timestamp: '2026-10-16T10:00:00Z'
+                status: 404
+                error: Not Found
+                message: Source account not found
+                path: /transfers
+        '409':
+          description: An account is inactive or the source account has insufficient funds.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                timestamp: '2026-10-16T10:00:00Z'
+                status: 409
+                error: Conflict
+                message: Insufficient funds
+                path: /transfers
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Auth0 access token. The API validates the token signature, issuer,
+        expiration, and audience (https://waseem.api.finance-app).
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token. Handled by Spring Security before the controller.
+    InvalidRequest:
+      description: Invalid JSON, parameter, or request validation failure. Handled by Spring's default error response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FrameworkErrorResponse'
+    CustomerNotFound:
+      description: No customer is linked to the authenticated JWT subject.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            timestamp: '2026-10-16T10:00:00Z'
+            status: 404
+            error: Not Found
+            message: No customer is linked to this Auth0 user yet
+            path: /customer
+    CustomerNotFoundOnAccountCreate:
+      description: No customer is linked to the authenticated JWT subject.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            timestamp: '2026-10-16T10:00:00Z'
+            status: 404
+            error: Not Found
+            message: No customer is linked to this Auth0 user yet
+            path: /accounts
+    AccountNotFound:
+      description: Account not found or not owned by the authenticated customer.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+          example:
+            timestamp: '2026-10-16T10:00:00Z'
+            status: 404
+            error: Not Found
+            message: Account not found
+            path: /accounts/999/transactions
+  schemas:
+    CustomerCreateRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          description: Must be nonblank. Trimmed and lowercased before storing a new customer.
+    CustomerDetailsRequest:
+      type: object
+      required: [name, phoneNumber]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Must be nonblank; trimmed before storage.
+        phoneNumber:
+          type: string
+          minLength: 1
+          description: Must be nonblank; trimmed before storage.
+    CustomerResponse:
+      type: object
+      required: [id, name, email, phoneNumber]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          nullable: true
+          description: Null until customer details are supplied.
+        email:
+          type: string
+          format: email
+        phoneNumber:
+          type: string
+          nullable: true
+          description: Null until customer details are supplied.
+    AccountCreateRequest:
+      type: object
+      required: [accountName, accountType, balance]
+      properties:
+        accountName:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Must be nonblank; trimmed before storage.
+        accountType:
+          $ref: '#/components/schemas/AccountType'
+        balance:
+          type: number
+          minimum: 0
+          multipleOf: 0.01
+          description: Demo opening balance. At most 17 integer digits and two fractional digits.
+    AccountResponse:
+      type: object
+      required: [id, accountName, accountNumber, accountType, balance, status]
+      properties:
+        id:
+          type: integer
+          format: int64
+        accountName:
+          type: string
+        accountNumber:
+          $ref: '#/components/schemas/AccountNumber'
+        accountType:
+          $ref: '#/components/schemas/AccountType'
+        balance:
+          type: number
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+    AccountSummary:
+      type: object
+      required: [id, accountName, accountNumber]
+      properties:
+        id:
+          type: integer
+          format: int64
+        accountName:
+          type: string
+        accountNumber:
+          $ref: '#/components/schemas/AccountNumber'
+    AccountNumber:
+      type: string
+      pattern: '^[0-9]{10}$'
+      description: Ten-digit account number generated by the server.
+      example: '0000000001'
+    AccountType:
+      type: string
+      enum: [CHECKING, SAVINGS]
+    AccountStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE]
+    TransferRequest:
+      type: object
+      required: [fromAccountNumber, toAccountNumber, amount]
+      properties:
+        fromAccountNumber:
+          type: string
+          minLength: 1
+          description: Existing source account number; must be owned by the authenticated customer.
+        toAccountNumber:
+          type: string
+          minLength: 1
+          description: Existing destination account number.
+        amount:
+          type: number
+          minimum: 0.01
+          multipleOf: 0.01
+          description: Positive transfer amount with at most two significant decimal places.
+        reference:
+          type: string
+          maxLength: 20
+          nullable: true
+          description: Optional transfer reference.
+    TransferResponse:
+      type: object
+      required: [id, fromAccount, toAccount, amount, reference, createdAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+        fromAccount:
+          $ref: '#/components/schemas/AccountSummary'
+        toAccount:
+          $ref: '#/components/schemas/AccountSummary'
+        amount:
+          type: number
+        reference:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    TransactionResponse:
+      type: object
+      required: [id, type, amount, balanceAfter, reference, createdAt, transfer]
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+          enum: [DEBIT, CREDIT]
+        amount:
+          type: number
+        balanceAfter:
+          type: number
+        reference:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        transfer:
+          oneOf:
+            - $ref: '#/components/schemas/TransferResponse'
+            - type: object
+              nullable: true
+              enum: [null]
+          description: Null for a transaction that is not linked to a transfer.
+    ApiErrorResponse:
+      type: object
+      required: [timestamp, status, error, message, path]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+          description: Reason supplied with ResponseStatusException.
+        path:
+          type: string
+    FrameworkErrorResponse:
+      type: object
+      required: [timestamp, status, error, path]
+      description: |
+        Spring's default error body for failures not handled by GlobalExceptionHandler.
+        Additional fields can depend on Spring Boot error settings.
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        path:
+          type: string
