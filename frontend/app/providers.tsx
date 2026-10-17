@@ -19,7 +19,7 @@ export default function Auth0Provider({ children }: { children: ReactNode }) {
       authorizationParams={{
         redirect_uri: redirectUri,
         audience: "https://waseem.api.finance-app",
-        scope: "openid profile email",
+        scope: "openid email",
       }}
     >
       {children}
